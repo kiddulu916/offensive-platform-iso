@@ -11,6 +11,10 @@ from app.tools.adapters.ffuf_adapter import FfufAdapter
 from app.tools.adapters.sqlmap_adapter import SqlmapAdapter
 from app.tools.adapters.gobuster_adapter import GobusterAdapter
 from app.tools.adapters.amass_adapter import AmassAdapter
+from app.tools.adapters.testssl_adapter import TestsslAdapter
+from app.tools.adapters.wpscan_adapter import WpscanAdapter
+from app.tools.adapters.metasploit_adapter import MetasploitAdapter
+from app.tools.adapters.burp_adapter import BurpAdapter
 
 class ToolRegistry:
     """Central registry for all security tools"""
@@ -24,18 +28,20 @@ class ToolRegistry:
         # Reconnaissance
         self.register("subfinder", SubfinderAdapter)
         self.register("amass", AmassAdapter)
-        
+        self.register("httpx", HttpxAdapter)
+
         # Scanning
         self.register("nmap", NmapAdapter)
-        self.register("httpx", HttpxAdapter)
         self.register("nuclei", NucleiAdapter)
         self.register("ffuf", FfufAdapter)
         self.register("gobuster", GobusterAdapter)
-        
+        self.register("testssl", TestsslAdapter)
+        self.register("wpscan", WpscanAdapter)
+        self.register("burp", BurpAdapter)
+
         # Exploitation
         self.register("sqlmap", SqlmapAdapter)
-        
-        # Add more as implemented
+        self.register("metasploit", MetasploitAdapter)
     
     def register(self, name: str, tool_class: Type[BaseTool]):
         """Register a new tool"""
