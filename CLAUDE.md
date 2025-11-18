@@ -38,7 +38,11 @@ platform-app/
 │   │       ├── ffuf_adapter.py
 │   │       ├── gobuster_adapter.py
 │   │       ├── sqlmap_adapter.py
-│   │       └── amass_adapter.py
+│   │       ├── amass_adapter.py
+│   │       ├── testssl_adapter.py       # NEW
+│   │       ├── wpscan_adapter.py        # NEW
+│   │       ├── metasploit_adapter.py    # NEW
+│   │       └── burp_adapter.py          # NEW
 │   └── workflows/          # Workflow execution engine
 │       ├── engine.py       # WorkflowWorker (QThread-based)
 │       ├── schemas.py      # Pydantic models for workflows
@@ -89,6 +93,11 @@ platform-app/
 python3 main.py
 ```
 
+**Debug mode with verbose logging:**
+```bash
+python3 main.py --debug
+```
+
 **Fullscreen kiosk mode:**
 ```bash
 python3 main.py --fullscreen
@@ -99,6 +108,12 @@ python3 main.py --fullscreen
 bash start.sh
 ```
 Note: start.sh runs in fullscreen with auto-restart on crash
+
+**Check installed security tools:**
+```bash
+python check_tools.py
+```
+This verifies which security tools are installed and provides installation instructions for missing tools.
 
 ### Environment Setup
 
@@ -139,6 +154,32 @@ db = SessionLocal()
 # ... perform queries
 db.close()
 ```
+
+## Newly Added Tools
+
+The following tools were added in this implementation:
+
+**TestSSL.sh** - SSL/TLS security testing
+- Executable: `testssl.sh`
+- Install: `git clone https://github.com/drwetter/testssl.sh.git && cd testssl.sh && sudo ln -s $PWD/testssl.sh /usr/local/bin/`
+- Usage: Scan SSL/TLS configurations for vulnerabilities
+
+**WPScan** - WordPress security scanner
+- Executable: `wpscan`
+- Install: `gem install wpscan` or `docker pull wpscanteam/wpscan`
+- API Token: Register at https://wpscan.com/ for vulnerability data
+- Usage: Enumerate WordPress plugins, themes, and vulnerabilities
+
+**Metasploit Framework** - Exploitation framework
+- Executable: `msfconsole`
+- Install: `curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && chmod 755 msfinstall && ./msfinstall`
+- Usage: Run exploitation modules via resource scripts
+
+**Burp Suite Professional** - Web application scanner
+- Executable: `burp`
+- Install: Download from https://portswigger.net/burp/pro (requires license)
+- Usage: Automated web application security scanning
+- Note: Requires Professional license for CLI scanner
 
 ## Adding New Security Tools
 
@@ -246,6 +287,47 @@ result = nmap.execute({"target": "scanme.nmap.org", "scan_type": "quick"})
 print(result)  # {'success': True/False, 'data': {...}, 'raw_output': '...'}
 ```
 
+## Logging System
+
+The platform has comprehensive structured logging for debugging and monitoring.
+
+**Log Files** (stored in `data/logs/`):
+- `platform.log` - General application logs (startup, shutdown, database)
+- `workflows.log` - Detailed workflow execution with scan/task/tool context
+- `tools.log` - Tool-specific execution logs (commands, output, timing)
+
+**Viewing Logs:**
+```bash
+# View recent workflow execution
+tail -f data/logs/workflows.log
+
+# View tool execution details
+tail -f data/logs/tools.log
+
+# Search for errors
+grep "ERROR" data/logs/*.log
+```
+
+**Using Logging in Code:**
+```python
+# Basic logger
+import logging
+logger = logging.getLogger(__name__)
+logger.info("Something happened")
+
+# Workflow logger with context (includes scan_id, task_id, tool in output)
+from app.core.logging_config import get_workflow_logger
+logger = get_workflow_logger(scan_id=123, task_id="recon_1", tool="nmap")
+logger.info("Task started")  # Automatically includes context
+
+# Tool logger
+from app.core.logging_config import get_tool_logger
+logger = get_tool_logger(tool_name="subfinder", task_id="recon_1")
+logger.info("Executing subfinder")
+```
+
+See `docs/LOGGING.md` for detailed logging documentation.
+
 ## Testing
 
 Currently no automated test suite. Testing workflow:
@@ -255,6 +337,7 @@ Currently no automated test suite. Testing workflow:
 3. Execute prebuilt workflows from dashboard
 4. Verify task execution in workflow widget
 5. Check scan results in database: `data/platform.db`
+6. Review logs in `data/logs/workflows.log` for execution trace
 
 **Querying scan results:**
 ```bash
@@ -294,10 +377,18 @@ Key Python packages:
 ## Common Issues
 
 1. **QT platform errors**: Ensure `QT_QPA_PLATFORM=xcb` and `DISPLAY=:0` are set
-2. **Tool not found errors**: Verify security tools are installed and in PATH
+2. **Tool not found errors**:
+   - Run `python check_tools.py` to see which tools are installed
+   - See `docs/REQUIRED_TOOLS.md` for installation instructions
+   - Verify security tools are installed and in PATH
 3. **Database locked**: Only one application instance should run at a time
 4. **Exit disabled in fullscreen**: Use Ctrl+Alt+Q emergency exit shortcut
 5. **Import errors**: Ensure you're running from the project root (`platform-app/`) as `main.py` adds `app/` to the Python path
+6. **Workflow debugging**:
+   - Run with `--debug` flag for verbose logging
+   - Check `data/logs/workflows.log` for detailed task execution trace
+   - Check `data/logs/tools.log` for actual commands executed and their output
+   - Look for parameter substitution failures or dependency issues in logs
 
 ## Code Architecture Notes
 
@@ -308,6 +399,13 @@ Key Python packages:
 **Tool execution timeout**: All tools inherit a default 300-second timeout from `BaseTool.execute()`. Individual tools can override this via `ToolMetadata.default_timeout` or per-execution via the `timeout` parameter.
 
 **QThread pattern for long operations**: The `WorkflowWorker` runs in a separate QThread to keep the UI responsive. It emits signals (`task_started`, `task_completed`, `progress_updated`) that the GUI widgets connect to for real-time updates.
+
+**Structured logging architecture**: The platform uses a three-tier logging system (`app/core/logging_config.py`):
+- `platform.log` uses simple format for general application events
+- `workflows.log` uses detailed format with context fields (scan_id, task_id, tool) for workflow execution tracing
+- `tools.log` captures all tool execution details including commands, timing, and output
+- Loggers created via `get_workflow_logger()` and `get_tool_logger()` automatically inject context into log records
+- Log rotation: platform (10MB/5 backups), workflows (20MB/10 backups), tools (20MB/10 backups)
 
 **Available prebuilt workflows:**
 - `web_app_full` - Complete web application assessment (subdomain enum → port scan → httpx → nuclei → ffuf → sqlmap)
