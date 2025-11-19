@@ -4,6 +4,7 @@ from app.tools.base import BaseTool
 
 # Import all adapters
 from app.tools.adapters.subfinder_adapter import SubfinderAdapter
+from app.tools.adapters.sublist3r_adapter import Sublist3rAdapter
 from app.tools.adapters.nmap_adapter import NmapAdapter
 from app.tools.adapters.httpx_adapter import HttpxAdapter
 from app.tools.adapters.nuclei_adapter import NucleiAdapter
@@ -27,6 +28,7 @@ class ToolRegistry:
         """Register all available tools"""
         # Reconnaissance
         self.register("subfinder", SubfinderAdapter)
+        self.register("sublist3r", Sublist3rAdapter)
         self.register("amass", AmassAdapter)
         self.register("httpx", HttpxAdapter)
 
