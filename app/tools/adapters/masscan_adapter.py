@@ -3,8 +3,6 @@ from app.tools.base import BaseTool, ToolMetadata, ToolCategory
 from typing import Dict, Any, List
 import json
 from pathlib import Path
-import tempfile
-import os
 
 class MasscanAdapter(BaseTool):
 
@@ -19,13 +17,10 @@ class MasscanAdapter(BaseTool):
         )
 
     def validate_parameters(self, params: Dict[str, Any]) -> bool:
-        """Validate that targets and ports are provided"""
+        """Validate that targets are provided"""
         if "targets" not in params or not params["targets"]:
             return False
-        if "ports" not in params and "port_range" not in params:
-            # Default to common ports if not specified
-            params["ports"] = "80,443,8080,8443,22,21,25,3306,3389"
-        return True
+        return True  # Ports are optional, will default in build_command
 
     def build_command(self, params: Dict[str, Any]) -> List[str]:
         """Build masscan command with JSON output"""
@@ -37,8 +32,8 @@ class MasscanAdapter(BaseTool):
         else:
             target_str = targets
 
-        # Build port specification
-        ports = params.get("ports", "80,443")
+        # Build port specification with defaults
+        ports = params.get("ports") or params.get("port_range") or "80,443,8080,8443,22,21,25,3306,3389"
         if isinstance(ports, list):
             ports = ",".join(map(str, ports))
 
@@ -81,8 +76,7 @@ class MasscanAdapter(BaseTool):
                 if ip not in hosts_dict:
                     hosts_dict[ip] = {
                         "ip": ip,
-                        "ports": [],
-                        "services": []
+                        "ports": []
                     }
 
                 # Extract port information
