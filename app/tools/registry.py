@@ -16,6 +16,7 @@ from app.tools.adapters.testssl_adapter import TestsslAdapter
 from app.tools.adapters.wpscan_adapter import WpscanAdapter
 from app.tools.adapters.metasploit_adapter import MetasploitAdapter
 from app.tools.adapters.burp_adapter import BurpAdapter
+from app.tools.adapters.masscan_adapter import MasscanAdapter
 
 class ToolRegistry:
     """Central registry for all security tools"""
@@ -34,6 +35,7 @@ class ToolRegistry:
 
         # Scanning
         self.register("nmap", NmapAdapter)
+        self.register("masscan", MasscanAdapter)
         self.register("nuclei", NucleiAdapter)
         self.register("ffuf", FfufAdapter)
         self.register("gobuster", GobusterAdapter)
