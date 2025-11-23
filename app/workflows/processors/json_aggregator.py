@@ -2,7 +2,8 @@
 from typing import Dict, Any, List
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
+from app.core.logging_config import get_workflow_logger
 
 class JsonAggregatorProcessor:
     """Processor for aggregating workflow results into final JSON report"""
@@ -25,11 +26,15 @@ class JsonAggregatorProcessor:
         Returns:
             Dictionary with success status and output file path
         """
+        logger = get_workflow_logger(task_id=task.task_id, tool="json_aggregator")
+
         try:
             params = task.parameters
             output_file = Path(params.get("output_file"))
             sections_config = params.get("sections", [])
             include_metadata = params.get("include_metadata", True)
+
+            logger.info(f"Starting JSON aggregation: {len(sections_config)} sections to {output_file}")
 
             # Build aggregated result
             aggregated = {}
@@ -37,7 +42,7 @@ class JsonAggregatorProcessor:
             # Add metadata
             if include_metadata:
                 aggregated["metadata"] = {
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "workflow_id": task.task_id,
                     "total_sections": len(sections_config)
                 }
@@ -74,13 +79,17 @@ class JsonAggregatorProcessor:
             with open(output_file, 'w') as f:
                 json.dump(aggregated, f, indent=2)
 
+            sections_written = len(aggregated) - (1 if include_metadata else 0)
+            logger.info(f"JSON aggregation complete: {sections_written} sections written to {output_file}")
+
             return {
                 "success": True,
                 "output_file": str(output_file),
-                "sections_written": len(aggregated) - (1 if include_metadata else 0)
+                "sections_written": sections_written
             }
 
         except Exception as e:
+            logger.error(f"JSON aggregation failed: {str(e)}")
             return {
                 "success": False,
                 "error": str(e)
