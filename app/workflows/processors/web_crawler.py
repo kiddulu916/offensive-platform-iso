@@ -4,6 +4,9 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class WebCrawlerProcessor:
     """Processor for crawling websites and detecting input fields"""
@@ -55,6 +58,7 @@ class WebCrawlerProcessor:
             max_depth = params.get("max_depth", 2)
             max_pages = params.get("max_pages", 50)
             timeout = params.get("timeout", 10)
+            verify_ssl = params.get("verify_ssl", True)  # Default to secure
 
             # Crawl each URL
             pages_with_inputs = []
@@ -65,10 +69,12 @@ class WebCrawlerProcessor:
                         base_url,
                         max_depth=max_depth,
                         max_pages=max_pages,
-                        timeout=timeout
+                        timeout=timeout,
+                        verify_ssl=verify_ssl
                     )
                     pages_with_inputs.extend(crawled)
                 except Exception as e:
+                    logger.warning(f"Failed to crawl domain {base_url}: {e}")
                     continue  # Skip failed domains
 
             return {
@@ -80,7 +86,7 @@ class WebCrawlerProcessor:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def _crawl_site(self, base_url: str, max_depth: int, max_pages: int, timeout: int) -> List[Dict]:
+    def _crawl_site(self, base_url: str, max_depth: int, max_pages: int, timeout: int, verify_ssl: bool = True) -> List[Dict]:
         """Crawl a single site and find forms with text inputs"""
         visited = set()
         to_visit = [(base_url, 0)]  # (url, depth)
@@ -98,7 +104,7 @@ class WebCrawlerProcessor:
 
             try:
                 # Fetch page
-                response = self.session.get(url, timeout=timeout, verify=False, allow_redirects=True)
+                response = self.session.get(url, timeout=timeout, verify=verify_ssl, allow_redirects=True)
 
                 if response.status_code != 200:
                     continue
@@ -128,7 +134,8 @@ class WebCrawlerProcessor:
 
                 time.sleep(0.5)  # Rate limiting
 
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Failed to fetch {url}: {e}")
                 continue
 
         return pages_with_inputs
