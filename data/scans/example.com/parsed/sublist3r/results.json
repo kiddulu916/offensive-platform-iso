@@ -1,0 +1,17 @@
+[
+  {
+    "name": "www.example.com",
+    "ips": [],
+    "source": "sublist3r"
+  },
+  {
+    "name": "mail.example.com",
+    "ips": [],
+    "source": "sublist3r"
+  },
+  {
+    "name": "ftp.example.com",
+    "ips": [],
+    "source": "sublist3r"
+  }
+]

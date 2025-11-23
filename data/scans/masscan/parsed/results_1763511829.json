@@ -1,0 +1,19 @@
+[
+  {
+    "ip": "192.168.1.1",
+    "ports": [
+      {
+        "port": 80,
+        "protocol": "tcp",
+        "state": "open",
+        "service": null
+      },
+      {
+        "port": 443,
+        "protocol": "tcp",
+        "state": "open",
+        "service": null
+      }
+    ]
+  }
+]
