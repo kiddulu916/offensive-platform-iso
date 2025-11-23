@@ -54,7 +54,7 @@ def merge_subdomain_lists(lists: List[List[Dict[str, Any]]]) -> List[Dict[str, A
 
     return deduplicate_subdomains(combined, merge_ips=True)
 
-def save_list_to_file(items: List[str], filepath: Path, append: bool = False):
+def save_list_to_file(items: List[str], filepath: Path, append: bool = False) -> bool:
     """
     Save list of strings to text file (one per line)
 
@@ -62,14 +62,21 @@ def save_list_to_file(items: List[str], filepath: Path, append: bool = False):
         items: List of strings to save
         filepath: Path to output file
         append: If True, append to existing file
-    """
-    filepath = Path(filepath)
-    filepath.parent.mkdir(parents=True, exist_ok=True)
 
-    mode = 'a' if append else 'w'
-    with open(filepath, mode) as f:
-        for item in items:
-            f.write(f"{item}\n")
+    Returns:
+        True if file was saved successfully, False on error
+    """
+    try:
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        mode = 'a' if append else 'w'
+        with open(filepath, mode) as f:
+            for item in items:
+                f.write(f"{item}\n")
+        return True
+    except (OSError, IOError) as e:
+        return False
 
 def load_list_from_file(filepath: Path) -> List[str]:
     """
