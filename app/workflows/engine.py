@@ -173,11 +173,25 @@ class WorkflowWorker(QThread):
         return ready
     
     def _execute_task(self, task_def) -> bool:
-        """Execute a single task (tool or merge)"""
-        # Check task type and delegate
+        """Execute a single task (tool, merge, file_output, web_crawl, etc.)"""
+        # Import processors
+        from app.workflows.processors.file_output import FileOutputProcessor
+        from app.workflows.processors.web_crawler import WebCrawlerProcessor
+        from app.workflows.processors.exploit_lookup import ExploitLookupProcessor
+        from app.workflows.processors.json_aggregator import JsonAggregatorProcessor
+
+        # Route to appropriate handler
         if task_def.task_type == TaskType.MERGE:
             return self._execute_merge_task(task_def)
-        else:
+        elif task_def.task_type == TaskType.FILE_OUTPUT:
+            return self._execute_processor_task(task_def, FileOutputProcessor())
+        elif task_def.task_type == TaskType.WEB_CRAWL:
+            return self._execute_processor_task(task_def, WebCrawlerProcessor())
+        elif task_def.task_type == TaskType.EXPLOIT_LOOKUP:
+            return self._execute_processor_task(task_def, ExploitLookupProcessor())
+        elif task_def.task_type == TaskType.JSON_AGGREGATE:
+            return self._execute_processor_task(task_def, JsonAggregatorProcessor())
+        else:  # TaskType.TOOL
             return self._execute_tool_task(task_def)
 
     def _execute_tool_task(self, task_def) -> bool:
@@ -417,6 +431,84 @@ class WorkflowWorker(QThread):
 
             self.task_failed.emit(task_def.task_id, error_msg)
 
+            return False
+
+    def _execute_processor_task(self, task_def, processor) -> bool:
+        """Execute a custom processor task"""
+        task_logger = get_workflow_logger(
+            scan_id=self.scan_id,
+            task_id=task_def.task_id
+        )
+
+        task_logger.info(f"Starting processor task: {task_def.name}")
+        self.task_started.emit(task_def.task_id, task_def.name)
+
+        # Create task record
+        db = SessionLocal()
+        task_record = Task(
+            scan_id=self.scan_id,
+            task_name=task_def.name,
+            tool=task_def.task_type,  # Use task type as "tool"
+            status="running",
+            parameters=json.dumps(task_def.parameters)
+        )
+        db.add(task_record)
+        db.commit()
+        task_id_db = task_record.id
+        db.close()
+
+        try:
+            # Execute processor
+            start_time = time.time()
+            result = processor.execute(task_def, {
+                task_id: result.output
+                for task_id, result in self.task_results.items()
+            })
+            execution_time = time.time() - start_time
+
+            success = result.get("success", False)
+
+            # Create task result
+            task_result = TaskResult(
+                task_id=task_def.task_id,
+                status=TaskStatus.COMPLETED if success else TaskStatus.FAILED,
+                output=result,
+                execution_time=execution_time
+            )
+
+            self.task_results[task_def.task_id] = task_result
+
+            # Update database
+            db = SessionLocal()
+            task_record = db.query(Task).filter(Task.id == task_id_db).first()
+            task_record.status = "completed" if success else "failed"
+            task_record.output = json.dumps(result)
+            task_record.completed_at = datetime.utcnow()
+            db.commit()
+            db.close()
+
+            if success:
+                task_logger.info(f"Processor task completed successfully in {execution_time:.2f}s")
+                self.task_completed.emit(task_def.task_id, result)
+            else:
+                error = result.get("error", "Unknown error")
+                task_logger.error(f"Processor task failed: {error}")
+                self.task_failed.emit(task_def.task_id, error)
+
+            return success
+
+        except Exception as e:
+            task_logger.exception(f"Processor task failed with exception: {e}")
+
+            db = SessionLocal()
+            task_record = db.query(Task).filter(Task.id == task_id_db).first()
+            task_record.status = "failed"
+            task_record.errors = str(e)
+            task_record.completed_at = datetime.utcnow()
+            db.commit()
+            db.close()
+
+            self.task_failed.emit(task_def.task_id, str(e))
             return False
 
     def _merge_data(self, source_results: List[Dict], dedupe_key: str, strategy: str, logger) -> List[Dict]:
