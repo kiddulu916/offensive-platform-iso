@@ -46,6 +46,15 @@ class ToolCategory(str, Enum):
     POST_EXPLOITATION = "post_exploitation"
     REPORTING = "reporting"
 
+class TaskType(str, Enum):
+    """Types of tasks in a workflow"""
+    TOOL = "tool"  # Execute a security tool
+    MERGE = "merge"  # Merge/deduplicate results from previous tasks
+    FILE_OUTPUT = "file_output"  # Save results to file
+    WEB_CRAWL = "web_crawl"  # Crawl websites for input fields
+    EXPLOIT_LOOKUP = "exploit_lookup"  # Look up exploits for vulnerabilities
+    JSON_AGGREGATE = "json_aggregate"  # Aggregate results into final JSON
+
 # ============================================================================
 # Task Configuration
 # ============================================================================
@@ -92,36 +101,62 @@ class TaskNotification(BaseModel):
 
 class WorkflowTask(BaseModel):
     """Individual task within a workflow"""
-    
+
     task_id: str = Field(
         ...,
         description="Unique identifier for the task",
         min_length=1,
         max_length=100
     )
-    
+
     name: str = Field(
         ...,
         description="Human-readable task name",
         min_length=1,
         max_length=200
     )
-    
+
     description: str = Field(
         default="",
         description="Detailed description of what the task does",
         max_length=500
     )
-    
-    tool: str = Field(
-        ...,
-        description="Name of the tool to execute",
+
+    task_type: TaskType = Field(
+        default=TaskType.TOOL,
+        description="Type of task: 'tool' for tool execution, 'merge' for result merging"
+    )
+
+    tool: Optional[str] = Field(
+        default=None,
+        description="Name of the tool to execute (required for task_type='tool')",
         min_length=1
     )
-    
+
     parameters: Dict[str, Any] = Field(
         default_factory=dict,
         description="Parameters to pass to the tool"
+    )
+
+    # Merge-specific fields
+    merge_sources: Optional[List[str]] = Field(
+        default=None,
+        description="List of task IDs whose results to merge (required for task_type='merge')"
+    )
+
+    merge_field: Optional[str] = Field(
+        default=None,
+        description="Field to merge on (e.g., 'subdomains', 'ips')"
+    )
+
+    dedupe_key: Optional[str] = Field(
+        default="name",
+        description="Key to use for deduplication within merged data (e.g., 'name' for subdomains)"
+    )
+
+    merge_strategy: Optional[str] = Field(
+        default="combine",
+        description="Merge strategy: 'combine' (merge IPs/data), 'replace' (last wins), 'append' (keep all)"
     )
     
     depends_on: List[str] = Field(
@@ -166,10 +201,37 @@ class WorkflowTask(BaseModel):
     @validator('task_id')
     def validate_task_id(cls, v):
         """Ensure task_id is a valid identifier"""
-        if not v.replace('_', '').replace('-', '').isalnum():
-            raise ValueError("task_id must contain only alphanumeric characters, hyphens, and underscores")
+        # Allow alphanumeric, hyphens, underscores, and periods (for domain names)
+        if not v.replace('_', '').replace('-', '').replace('.', '').isalnum():
+            raise ValueError("task_id must contain only alphanumeric characters, hyphens, underscores, and periods")
         return v
-    
+
+    @validator('tool')
+    def validate_tool_field(cls, v, values):
+        """Ensure tool is provided for tool tasks"""
+        task_type = values.get('task_type', TaskType.TOOL)
+        if task_type == TaskType.TOOL and not v:
+            raise ValueError("'tool' field is required for task_type='tool'")
+        return v
+
+    @validator('merge_sources')
+    def validate_merge_sources(cls, v, values):
+        """Ensure merge_sources is provided for merge tasks"""
+        task_type = values.get('task_type', TaskType.TOOL)
+        if task_type == TaskType.MERGE and not v:
+            raise ValueError("'merge_sources' field is required for task_type='merge'")
+        if v and len(v) < 1:
+            raise ValueError("'merge_sources' must contain at least one task ID")
+        return v
+
+    @validator('merge_strategy')
+    def validate_merge_strategy(cls, v):
+        """Validate merge strategy"""
+        valid_strategies = ['combine', 'replace', 'append']
+        if v and v not in valid_strategies:
+            raise ValueError(f"merge_strategy must be one of {valid_strategies}")
+        return v
+
     class Config:
         use_enum_values = True
 
@@ -247,8 +309,9 @@ class WorkflowDefinition(BaseModel):
     @validator('workflow_id')
     def validate_workflow_id(cls, v):
         """Ensure workflow_id is a valid identifier"""
-        if not v.replace('_', '').replace('-', '').isalnum():
-            raise ValueError("workflow_id must contain only alphanumeric characters, hyphens, and underscores")
+        # Allow alphanumeric, hyphens, underscores, and periods (for domain names)
+        if not v.replace('_', '').replace('-', '').replace('.', '').isalnum():
+            raise ValueError("workflow_id must contain only alphanumeric characters, hyphens, underscores, and periods")
         return v
     
     @validator('tasks')
