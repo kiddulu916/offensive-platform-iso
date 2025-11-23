@@ -62,13 +62,14 @@ class NmapAdapter(BaseTool):
         return cmd
 
     def parse_output(self, output: str, stderr: str, return_code: int) -> Dict[str, Any]:
-        """Parse nmap XML output and update combined results"""
+        """Parse nmap XML output with service fingerprints for exploit lookup"""
         try:
             root = ET.fromstring(output)
         except:
-            return {"error": "Failed to parse nmap XML output", "hosts": []}
+            return {"error": "Failed to parse nmap XML output", "hosts": [], "services": []}
 
         hosts = []
+        services = []  # NEW: Collect all services for fingerprinting
         ip_port_map = {}
 
         for host_elem in root.findall('.//host'):
@@ -89,12 +90,14 @@ class NmapAdapter(BaseTool):
                     service_elem = port_elem.find('.//service')
                     port_num = int(port_elem.get('portid'))
                     service_name = service_elem.get('name') if service_elem is not None else 'unknown'
+                    service_product = service_elem.get('product', '') if service_elem is not None else ''
                     service_version = service_elem.get('version', '') if service_elem is not None else ''
 
                     port_info = {
                         "port": port_num,
                         "protocol": port_elem.get('protocol'),
                         "service": service_name,
+                        "product": service_product,
                         "version": service_version
                     }
                     ports.append(port_info)
@@ -104,6 +107,23 @@ class NmapAdapter(BaseTool):
                     if service_version:
                         service_desc += f" {service_version}"
                     ports_dict[str(port_num)] = service_desc
+
+                    # Add to services list for fingerprinting (only open ports)
+                    if service_name and service_name != 'unknown':
+                        # Build full service string
+                        full_string_parts = []
+                        if service_product:
+                            full_string_parts.append(service_product)
+                        if service_version:
+                            full_string_parts.append(service_version)
+
+                        services.append({
+                            'host': host_ip,
+                            'port': port_num,
+                            'service': service_product if service_product else service_name,
+                            'version': service_version,
+                            'full_string': ' '.join(full_string_parts) if full_string_parts else service_name
+                        })
 
             if ports:
                 hosts.append({
@@ -127,7 +147,9 @@ class NmapAdapter(BaseTool):
 
         return {
             "hosts": hosts,
+            "services": services,  # NEW: Return services for exploit lookup
             "total_hosts": len(hosts),
+            "total_services": len(services),
             "ip_port_map": ip_port_map
         }
 
