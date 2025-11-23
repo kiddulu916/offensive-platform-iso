@@ -3,11 +3,12 @@ from typing import Dict, Any, List
 from pathlib import Path
 import json
 from app.utils.result_utils import save_list_to_file
+from app.workflows.schemas import WorkflowTask
 
 class FileOutputProcessor:
     """Processor for saving workflow results to text files"""
 
-    def execute(self, task, previous_results: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, task: WorkflowTask, previous_results: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute file output task
 
@@ -50,11 +51,18 @@ class FileOutputProcessor:
             extract_field = params.get("extract_field")
             if extract_field:
                 if isinstance(data, list):
-                    data = [
-                        item[extract_field] if isinstance(item, dict) else item
-                        for item in data
-                        if (isinstance(item, dict) and extract_field in item) or not isinstance(item, dict)
-                    ]
+                    extracted = []
+                    for item in data:
+                        if isinstance(item, dict) and extract_field in item:
+                            value = item[extract_field]
+                            # Flatten nested lists
+                            if isinstance(value, list):
+                                extracted.extend(value)
+                            else:
+                                extracted.append(value)
+                        elif not isinstance(item, dict):
+                            extracted.append(item)
+                    data = extracted
 
             # Ensure data is a list
             if not isinstance(data, list):
@@ -72,7 +80,11 @@ class FileOutputProcessor:
             else:  # txt format
                 # Convert all items to strings
                 string_items = [str(item) for item in data]
-                save_list_to_file(string_items, output_file)
+                if not save_list_to_file(string_items, output_file):
+                    return {
+                        "success": False,
+                        "error": f"Failed to write file: {output_file}"
+                    }
 
             return {
                 "success": True,
