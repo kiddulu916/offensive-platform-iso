@@ -450,7 +450,7 @@ class WorkflowWorker(QThread):
             task_name=task_def.name,
             tool=task_def.task_type,  # Use task type as "tool"
             status="running",
-            parameters=json.dumps(task_def.parameters)
+            started_at=datetime.utcnow()
         )
         db.add(task_record)
         db.commit()
