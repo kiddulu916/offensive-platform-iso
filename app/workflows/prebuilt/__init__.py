@@ -6,6 +6,7 @@ from app.workflows.prebuilt.web_app_scan import create_web_app_workflow
 from app.workflows.prebuilt.subdomain_enum import create_subdomain_enum_workflow
 from app.workflows.prebuilt.port_scan import create_port_scan_workflow
 from app.workflows.prebuilt.vuln_scan import create_vuln_scan_workflow
+from app.workflows.prebuilt.advanced_recon_exploit import create_advanced_recon_exploit_workflow
 
 
 class WorkflowFactory:
@@ -14,23 +15,28 @@ class WorkflowFactory:
     @staticmethod
     def create_workflow(workflow_id: str, target: str) -> WorkflowDefinition:
         """Create a workflow by ID"""
-        
+
         if workflow_id == "web_app_full":
             return create_web_app_workflow(target)
-        
+
         elif workflow_id == "subdomain_enum":
             # Extract domain from URL if needed
             domain = target.replace("https://", "").replace("http://", "").split("/")[0]
             return create_subdomain_enum_workflow(domain)
-        
+
         elif workflow_id == "port_scan":
             # Extract host from URL if needed
             host = target.replace("https://", "").replace("http://", "").split("/")[0]
             return create_port_scan_workflow(host)
-        
+
         elif workflow_id == "vuln_scan":
             return create_vuln_scan_workflow(target)
-        
+
+        elif workflow_id == "advanced_recon_exploit":
+            # Extract domain from URL if needed
+            domain = target.replace("https://", "").replace("http://", "").split("/")[0]
+            return create_advanced_recon_exploit_workflow(domain)
+
         else:
             raise ValueError(f"Unknown workflow ID: {workflow_id}")
     
@@ -61,5 +67,11 @@ class WorkflowFactory:
                 "name": "Vulnerability Scanning",
                 "description": "Automated vulnerability assessment",
                 "requires": "URL"
+            },
+            {
+                "id": "advanced_recon_exploit",
+                "name": "Advanced Recon & Exploitation",
+                "description": "Full-spectrum automated penetration test with intelligent exploitation",
+                "requires": "Domain"
             }
         ]
