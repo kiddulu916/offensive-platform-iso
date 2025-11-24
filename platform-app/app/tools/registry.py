@@ -15,7 +15,6 @@ from app.tools.adapters.amass_adapter import AmassAdapter
 from app.tools.adapters.testssl_adapter import TestsslAdapter
 from app.tools.adapters.wpscan_adapter import WpscanAdapter
 from app.tools.adapters.metasploit_adapter import MetasploitAdapter
-from app.tools.adapters.burp_adapter import BurpAdapter
 from app.tools.adapters.masscan_adapter import MasscanAdapter
 
 class ToolRegistry:
@@ -39,9 +38,8 @@ class ToolRegistry:
         self.register("nuclei", NucleiAdapter)
         self.register("ffuf", FfufAdapter)
         self.register("gobuster", GobusterAdapter)
-        self.register("testssl", TestsslAdapter)
+        self.register("testssl.sh", TestsslAdapter)
         self.register("wpscan", WpscanAdapter)
-        self.register("burp", BurpAdapter)
 
         # Exploitation
         self.register("sqlmap", SqlmapAdapter)

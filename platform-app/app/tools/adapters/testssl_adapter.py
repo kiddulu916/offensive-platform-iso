@@ -9,7 +9,7 @@ class TestsslAdapter(BaseTool):
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="testssl",
+            name="testssl.sh",
             category=ToolCategory.SCANNING,
             description="SSL/TLS security testing tool",
             executable="testssl.sh",

@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         self.dashboard_page.workflow_selected.connect(self.launch_workflow)
         self.dashboard_page.terminal_requested.connect(self.show_terminal)
         self.dashboard_page.reports_requested.connect(self.show_reports)
+        self.dashboard_page.report_requested.connect(self.show_report)
         self.dashboard_page.logout_requested.connect(self.logout)
         
         # Show login page
@@ -114,7 +115,15 @@ class MainWindow(QMainWindow):
         self.report_page.load_reports(self.current_user)
         self.stacked_widget.setCurrentWidget(self.report_page)
         self.report_page.set_return_callback(self.show_dashboard)
-        
+
+    def show_report(self, scan_id: int):
+        """Show report for given scan_id"""
+        # Load report data
+        self.report_page.load_scan_report(scan_id)
+
+        # Navigate to report widget
+        self.stacked_widget.setCurrentWidget(self.report_page)
+
     def launch_workflow(self, workflow_id):
         """Launch a workflow"""
         self.workflow_page.start_workflow(workflow_id, self.current_user)

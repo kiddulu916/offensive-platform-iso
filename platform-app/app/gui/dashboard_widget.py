@@ -126,10 +126,11 @@ class ScanHistoryItem(QFrame):
 
 class DashboardWidget(QWidget):
     """Main dashboard widget"""
-    
+
     workflow_selected = pyqtSignal(str)  # workflow_id
     terminal_requested = pyqtSignal()
     reports_requested = pyqtSignal()
+    report_requested = pyqtSignal(int)  # scan_id
     logout_requested = pyqtSignal()
     
     def __init__(self):
@@ -278,6 +279,5 @@ class DashboardWidget(QWidget):
             self.workflow_selected.emit(f"{workflow_id}:{target}")
         
     def on_view_report(self, scan_id: int):
-        """Handle view report click"""
-        # TODO: Implement report viewing
-        QMessageBox.information(self, "Report", f"Viewing report for scan {scan_id}")
+        """Handle view report click - emit signal for main window"""
+        self.report_requested.emit(scan_id)

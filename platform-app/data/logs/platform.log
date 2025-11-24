@@ -271,3 +271,78 @@ Encountered error(s): 1 errors occured.
 2025-11-18 11:42:52 | INFO     | workflows.engine | Workflow execution completed in 73.74s
 2025-11-18 11:42:52 | INFO     | workflows.engine | Workflow summary: 2 completed, 2 failed
 2025-11-18 11:46:45 | INFO     | __main__ | Application exited with code: 0
+2025-11-23 19:18:31 | INFO     | root | Logging initialized - Level: DEBUG
+2025-11-23 19:18:31 | INFO     | root | Log directory: /home/kiddulu/Projects/offensive-platform-iso/platform-app/data/logs
+2025-11-23 19:18:31 | INFO     | __main__ | Global exception handler installed
+2025-11-23 19:18:31 | INFO     | __main__ | Qt message handler installed
+2025-11-23 19:18:31 | INFO     | __main__ | ============================================================
+2025-11-23 19:18:31 | INFO     | __main__ | Starting Offensive Security Platform
+2025-11-23 19:18:31 | INFO     | __main__ | Python version: 3.13.9 (main, Oct 15 2025, 14:56:22) [GCC 15.2.0]
+2025-11-23 19:18:31 | INFO     | __main__ | Arguments: ['main.py', '--debug']
+2025-11-23 19:18:31 | INFO     | __main__ | ============================================================
+2025-11-23 19:18:31 | INFO     | __main__ | Initializing database...
+2025-11-23 19:18:31 | INFO     | __main__ | Database initialized successfully
+2025-11-23 19:18:31 | INFO     | __main__ | Loading dark theme stylesheet...
+2025-11-23 19:18:31 | ERROR    | __main__ | Fatal error in main(): [Errno 2] No such file or directory: 'resources/styles/dark.qss'
+Traceback (most recent call last):
+  File "/home/kiddulu/Projects/offensive-platform-iso/platform-app/main.py", line 95, in main
+    with open('resources/styles/dark.qss', 'r') as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'resources/styles/dark.qss'
+2025-11-23 19:18:31 | CRITICAL | __main__ | Application crashed, see traceback above
+2025-11-23 19:49:37 | INFO     | root | Logging initialized - Level: INFO
+2025-11-23 19:49:37 | INFO     | root | Log directory: /home/kiddulu/Projects/offensive-platform-iso/platform-app/data/logs
+2025-11-23 19:49:37 | INFO     | __main__ | Global exception handler installed
+2025-11-23 19:49:37 | INFO     | __main__ | Qt message handler installed
+2025-11-23 19:49:37 | INFO     | __main__ | ============================================================
+2025-11-23 19:49:37 | INFO     | __main__ | Starting Offensive Security Platform
+2025-11-23 19:49:37 | INFO     | __main__ | Python version: 3.13.9 (main, Oct 15 2025, 14:56:22) [GCC 15.2.0]
+2025-11-23 19:49:37 | INFO     | __main__ | Arguments: ['main.py']
+2025-11-23 19:49:37 | INFO     | __main__ | ============================================================
+2025-11-23 19:49:37 | INFO     | __main__ | Initializing database...
+2025-11-23 19:49:37 | INFO     | __main__ | Database initialized successfully
+2025-11-23 19:49:37 | INFO     | __main__ | Loading dark theme stylesheet...
+2025-11-23 19:49:37 | ERROR    | __main__ | Fatal error in main(): [Errno 2] No such file or directory: 'resources/styles/dark.qss'
+Traceback (most recent call last):
+  File "/home/kiddulu/Projects/offensive-platform-iso/platform-app/main.py", line 95, in main
+    with open('resources/styles/dark.qss', 'r') as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'resources/styles/dark.qss'
+2025-11-23 19:49:37 | CRITICAL | __main__ | Application crashed, see traceback above
+2025-11-23 19:50:59 | INFO     | root | Logging initialized - Level: DEBUG
+2025-11-23 19:50:59 | INFO     | root | Log directory: /home/kiddulu/Projects/offensive-platform-iso/platform-app/data/logs
+2025-11-23 19:50:59 | INFO     | __main__ | Global exception handler installed
+2025-11-23 19:50:59 | INFO     | __main__ | Qt message handler installed
+2025-11-23 19:50:59 | INFO     | __main__ | ============================================================
+2025-11-23 19:50:59 | INFO     | __main__ | Starting Offensive Security Platform
+2025-11-23 19:50:59 | INFO     | __main__ | Python version: 3.13.9 (main, Oct 15 2025, 14:56:22) [GCC 15.2.0]
+2025-11-23 19:50:59 | INFO     | __main__ | Arguments: ['main.py', '--debug']
+2025-11-23 19:50:59 | INFO     | __main__ | ============================================================
+2025-11-23 19:50:59 | INFO     | __main__ | Initializing database...
+2025-11-23 19:50:59 | INFO     | __main__ | Database initialized successfully
+2025-11-23 19:50:59 | INFO     | __main__ | Loading dark theme stylesheet...
+2025-11-23 19:50:59 | INFO     | __main__ | Stylesheet loaded successfully
+2025-11-23 19:50:59 | INFO     | __main__ | Creating main window...
+2025-11-23 19:50:59 | INFO     | __main__ | Main window created successfully
+2025-11-23 19:50:59 | INFO     | __main__ | Starting in windowed mode
+2025-11-23 19:50:59 | INFO     | __main__ | Application window created, entering main event loop
+2025-11-23 19:51:27 | INFO     | app.core.auth | Authentication attempt for username: kiddulu
+2025-11-23 19:51:28 | INFO     | app.core.auth | Authentication successful for user: kiddulu (id=1)
+2025-11-23 19:51:43 | INFO     | workflows.engine | Initializing workflow: Full Web Application Security Scan
+2025-11-23 19:51:43 | INFO     | workflows.engine | Target: https://example.com
+2025-11-23 19:51:43 | INFO     | workflows.engine | Total tasks: 8
+2025-11-23 19:51:43 | INFO     | workflows.engine | Scan record created: scan_id=15
+2025-11-23 19:51:43 | INFO     | workflows.engine | Starting workflow execution
+2025-11-23 19:51:43 | DEBUG    | workflows.engine | Entering workflow execution loop (total_tasks=8)
+2025-11-23 19:51:43 | DEBUG    | workflows.engine | Dependency check: 2 tasks ready to execute
+2025-11-23 19:51:43 | INFO     | workflows.engine | Selected task for execution: recon_amass (Amass Subdomain Enumeration) - priority 10
+2025-11-23 19:51:43 | DEBUG    | workflows.engine | Other ready tasks (lower priority): ['recon_subfinder']
+2025-11-23 19:51:43 | INFO     | workflows.engine | Starting task: Amass Subdomain Enumeration
+2025-11-23 19:51:43 | DEBUG    | workflows.engine | Task dependencies: []
+2025-11-23 19:51:43 | DEBUG    | workflows.engine | Raw parameters: {'domain': 'example.com', 'passive': True}
+2025-11-23 19:51:44 | DEBUG    | workflows.engine | Substituted parameters: {'domain': 'example.com', 'passive': True}
+2025-11-23 19:51:44 | INFO     | workflows.engine | Executing tool: amass
+2025-11-23 19:51:44 | INFO     | tools.amass | Executing tool: amass
+2025-11-23 19:51:44 | DEBUG    | tools.amass | Tool parameters: {'domain': 'example.com', 'passive': True}
+2025-11-23 19:51:44 | INFO     | tools.amass | Command: amass enum -d example.com -json /dev/stdout -passive
+2025-11-23 19:51:44 | DEBUG    | tools.amass | Timeout: 900s

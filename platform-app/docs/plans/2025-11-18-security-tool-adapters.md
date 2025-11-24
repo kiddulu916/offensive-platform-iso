@@ -2,11 +2,11 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add four new security tool adapters (testssl, wpscan, metasploit, burp) to the Offensive Security Platform
+**Goal:** Add three new security tool adapters (testssl, wpscan, metasploit) to the Offensive Security Platform
 
 **Architecture:** Each adapter follows the BaseTool abstract class pattern, implementing metadata, parameter validation, command building, and output parsing. Tools are registered in the ToolRegistry singleton and can be used in workflows.
 
-**Tech Stack:** Python 3, subprocess execution, JSON parsing, testssl.sh, wpscan, msfconsole, burp CLI
+**Tech Stack:** Python 3, subprocess execution, JSON parsing, testssl.sh, wpscan, msfconsole
 
 ---
 
@@ -1258,408 +1258,8 @@ Note: Simplified implementation for basic module execution"
 
 ---
 
-## Task 4: Burp Suite Adapter (Web App Security)
 
-**Files:**
-- Create: `app/tools/adapters/burp_adapter.py`
-- Create: `tests/test_burp_adapter.py`
-- Modify: `app/tools/registry.py:1-58`
-
-**Note:** Burp Suite Professional has a CLI scanner. This adapter assumes Burp Suite Pro is installed.
-
-### Step 1: Write failing test for Burp metadata
-
-**File:** `tests/test_burp_adapter.py`
-
-```python
-"""Tests for Burp Suite adapter"""
-import pytest
-from app.tools.adapters.burp_adapter import BurpAdapter
-from app.tools.base import ToolCategory
-
-
-def test_burp_metadata():
-    """Test Burp Suite adapter metadata"""
-    adapter = BurpAdapter()
-    metadata = adapter.get_metadata()
-
-    assert metadata.name == "burp"
-    assert metadata.category == ToolCategory.SCANNING
-    assert metadata.executable == "burp"
-    assert metadata.requires_root == False
-    assert metadata.default_timeout == 1800
-```
-
-### Step 2: Run test to verify it fails
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_metadata -v
-```
-
-**Expected:** FAIL with ModuleNotFoundError
-
-### Step 3: Write minimal Burp adapter
-
-**File:** `app/tools/adapters/burp_adapter.py`
-
-```python
-"""Burp Suite Professional adapter for web application security scanning"""
-from app.tools.base import BaseTool, ToolMetadata, ToolCategory
-from typing import Dict, Any, List
-import json
-import xml.etree.ElementTree as ET
-
-
-class BurpAdapter(BaseTool):
-
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="burp",
-            category=ToolCategory.SCANNING,
-            description="Burp Suite Professional web application scanner",
-            executable="burp",
-            requires_root=False,
-            default_timeout=1800  # 30 minutes for thorough scans
-        )
-
-    def validate_parameters(self, params: Dict[str, Any]) -> bool:
-        # TODO: Implement
-        return True
-
-    def build_command(self, params: Dict[str, Any]) -> List[str]:
-        # TODO: Implement
-        return []
-
-    def parse_output(self, output: str, stderr: str, return_code: int) -> Dict[str, Any]:
-        # TODO: Implement
-        return {}
-```
-
-### Step 4: Run test to verify it passes
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_metadata -v
-```
-
-**Expected:** PASS
-
-### Step 5: Write failing test for parameter validation
-
-**File:** `tests/test_burp_adapter.py` (append)
-
-```python
-def test_burp_validate_parameters():
-    """Test Burp parameter validation"""
-    adapter = BurpAdapter()
-
-    # Valid: url or urls present
-    assert adapter.validate_parameters({"url": "https://example.com"}) == True
-    assert adapter.validate_parameters({"urls": ["https://example.com"]}) == True
-
-    # Invalid: no url
-    assert adapter.validate_parameters({}) == False
-    assert adapter.validate_parameters({"scan_type": "crawl"}) == False
-```
-
-### Step 6: Run test to verify it fails
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_validate_parameters -v
-```
-
-**Expected:** FAIL
-
-### Step 7: Implement parameter validation
-
-**File:** `app/tools/adapters/burp_adapter.py` (modify)
-
-```python
-def validate_parameters(self, params: Dict[str, Any]) -> bool:
-    """Validate that url or urls is provided"""
-    return "url" in params or "urls" in params
-```
-
-### Step 8: Run test to verify it passes
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_validate_parameters -v
-```
-
-**Expected:** PASS
-
-### Step 9: Write failing test for command building
-
-**File:** `tests/test_burp_adapter.py` (append)
-
-```python
-def test_burp_build_command_basic(tmp_path):
-    """Test Burp command building"""
-    adapter = BurpAdapter()
-    adapter._temp_dir = tmp_path
-
-    params = {
-        "url": "https://example.com"
-    }
-
-    cmd = adapter.build_command(params)
-
-    assert "burp" in cmd
-    assert "--project-file" in cmd or "--unpacked-project" in cmd
-    assert "--scan" in cmd or any("--scan" in str(c) for c in cmd)
-
-
-def test_burp_build_command_with_config(tmp_path):
-    """Test Burp with scan configuration"""
-    adapter = BurpAdapter()
-    adapter._temp_dir = tmp_path
-
-    params = {
-        "urls": ["https://example.com", "https://test.com"],
-        "scan_type": "audit",
-        "report_format": "xml"
-    }
-
-    cmd = adapter.build_command(params)
-
-    # Should specify output format
-    assert any("xml" in str(c).lower() or "report" in str(c).lower() for c in cmd)
-```
-
-### Step 10: Run test to verify it fails
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_build_command_basic -v
-```
-
-**Expected:** FAIL
-
-### Step 11: Implement command building
-
-**File:** `app/tools/adapters/burp_adapter.py` (modify)
-
-```python
-import tempfile
-from pathlib import Path
-
-def build_command(self, params: Dict[str, Any]) -> List[str]:
-    """Build Burp Suite scanner command"""
-    # Create temporary files for scan
-    temp_dir = Path(tempfile.mkdtemp())
-    project_file = temp_dir / "burp_project.burp"
-    report_file = temp_dir / "burp_report.xml"
-
-    # Store for cleanup
-    self._temp_project = str(project_file)
-    self._temp_report = str(report_file)
-
-    # Base command
-    cmd = [
-        self.metadata.executable,
-        "--project-file", str(project_file),
-        "--unpacked-project"
-    ]
-
-    # Target URL(s)
-    if "url" in params:
-        urls = [params["url"]]
-    else:
-        urls = params["urls"]
-
-    # Scan configuration
-    scan_type = params.get("scan_type", "crawl_and_audit")
-
-    for url in urls:
-        cmd.extend(["--scan", url])
-
-    # Report output
-    report_format = params.get("report_format", "xml")
-    cmd.extend([
-        "--report-output", str(report_file),
-        "--report-type", report_format
-    ])
-
-    return cmd
-```
-
-### Step 12: Run test to verify it passes
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_build_command_basic -v
-pytest tests/test_burp_adapter.py::test_burp_build_command_with_config -v
-```
-
-**Expected:** PASS
-
-### Step 13: Write failing test for output parsing
-
-**File:** `tests/test_burp_adapter.py` (append)
-
-```python
-def test_burp_parse_output():
-    """Test Burp XML report parsing"""
-    adapter = BurpAdapter()
-
-    # Sample Burp XML report (simplified)
-    sample_output = '''<?xml version="1.0"?>
-<issues burpVersion="2023.1">
-    <issue>
-        <serialNumber>1</serialNumber>
-        <type>2097920</type>
-        <name>Cross-site scripting (reflected)</name>
-        <host>https://example.com</host>
-        <path>/search?q=test</path>
-        <severity>High</severity>
-        <confidence>Certain</confidence>
-    </issue>
-    <issue>
-        <serialNumber>2</serialNumber>
-        <type>5244416</type>
-        <name>SQL injection</name>
-        <host>https://example.com</host>
-        <path>/product?id=1</path>
-        <severity>High</severity>
-        <confidence>Firm</confidence>
-    </issue>
-</issues>
-'''
-
-    result = adapter.parse_output(sample_output, "", 0)
-
-    assert "issues" in result
-    assert len(result["issues"]) == 2
-    assert result["total_issues"] == 2
-
-    # Check severity counts
-    assert "severity_counts" in result
-    assert result["severity_counts"]["High"] == 2
-
-    # Check first issue
-    assert result["issues"][0]["name"] == "Cross-site scripting (reflected)"
-    assert result["issues"][0]["severity"] == "High"
-
-
-def test_burp_parse_output_empty():
-    """Test Burp parsing with no issues"""
-    adapter = BurpAdapter()
-
-    sample_output = '''<?xml version="1.0"?>
-<issues burpVersion="2023.1">
-</issues>
-'''
-
-    result = adapter.parse_output(sample_output, "", 0)
-
-    assert result["issues"] == []
-    assert result["total_issues"] == 0
-```
-
-### Step 14: Run test to verify it fails
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_parse_output -v
-```
-
-**Expected:** FAIL
-
-### Step 15: Implement output parsing
-
-**File:** `app/tools/adapters/burp_adapter.py` (modify)
-
-```python
-def parse_output(self, output: str, stderr: str, return_code: int) -> Dict[str, Any]:
-    """Parse Burp Suite XML report"""
-    issues = []
-    severity_counts = {
-        "High": 0,
-        "Medium": 0,
-        "Low": 0,
-        "Information": 0
-    }
-
-    if not output.strip():
-        return {
-            "issues": issues,
-            "total_issues": 0,
-            "severity_counts": severity_counts
-        }
-
-    try:
-        root = ET.fromstring(output)
-
-        for issue_elem in root.findall('.//issue'):
-            issue = {
-                "serial_number": issue_elem.findtext('serialNumber', ''),
-                "type": issue_elem.findtext('type', ''),
-                "name": issue_elem.findtext('name', ''),
-                "host": issue_elem.findtext('host', ''),
-                "path": issue_elem.findtext('path', ''),
-                "severity": issue_elem.findtext('severity', 'Information'),
-                "confidence": issue_elem.findtext('confidence', '')
-            }
-
-            issues.append(issue)
-
-            # Count by severity
-            severity = issue["severity"]
-            if severity in severity_counts:
-                severity_counts[severity] += 1
-
-    except ET.ParseError:
-        # Return empty results if XML parsing fails
-        pass
-
-    return {
-        "issues": issues,
-        "total_issues": len(issues),
-        "severity_counts": severity_counts
-    }
-```
-
-### Step 16: Run test to verify it passes
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py::test_burp_parse_output -v
-pytest tests/test_burp_adapter.py::test_burp_parse_output_empty -v
-```
-
-**Expected:** PASS
-
-### Step 17: Run all Burp tests
-
-**Command:**
-```bash
-pytest tests/test_burp_adapter.py -v
-```
-
-**Expected:** All tests PASS
-
-### Step 18: Commit Burp adapter
-
-**Command:**
-```bash
-git add app/tools/adapters/burp_adapter.py tests/test_burp_adapter.py
-git commit -m "feat: add burp suite adapter for web app security scanning
-
-- Implements BaseTool interface for Burp Pro CLI
-- Supports crawl and audit scanning
-- Parses XML report output
-- Tracks issues by severity
-- Includes comprehensive unit tests
-
-Note: Requires Burp Suite Professional with CLI access"
-```
-
----
-
-## Task 5: Register All Adapters in ToolRegistry
+## Task 4: Register All Adapters in ToolRegistry
 
 **Files:**
 - Modify: `app/tools/registry.py:1-58`
@@ -1684,7 +1284,6 @@ def test_registry_contains_new_tools():
     assert "testssl" in tool_names
     assert "wpscan" in tool_names
     assert "metasploit" in tool_names
-    assert "burp" in tool_names
 
 
 def test_registry_get_new_tools():
@@ -1702,8 +1301,6 @@ def test_registry_get_new_tools():
     metasploit = registry.get_tool("metasploit")
     assert metasploit is not None
 
-    burp = registry.get_tool("burp")
-    assert burp is not None
 ```
 
 ### Step 2: Run test to verify it fails
@@ -1737,7 +1334,6 @@ from app.tools.adapters.amass_adapter import AmassAdapter
 from app.tools.adapters.testssl_adapter import TestsslAdapter
 from app.tools.adapters.wpscan_adapter import WpscanAdapter
 from app.tools.adapters.metasploit_adapter import MetasploitAdapter
-from app.tools.adapters.burp_adapter import BurpAdapter
 ```
 
 **Modify _register_tools method (lines 22-38):**
@@ -1756,7 +1352,6 @@ def _register_tools(self):
     self.register("gobuster", GobusterAdapter)
     self.register("testssl", TestsslAdapter)
     self.register("wpscan", WpscanAdapter)
-    self.register("burp", BurpAdapter)
 
     # Exploitation
     self.register("sqlmap", SqlmapAdapter)
@@ -1780,7 +1375,7 @@ pytest tests/test_registry.py::test_registry_get_new_tools -v
 python check_tools.py
 ```
 
-**Expected:** Should list testssl, wpscan, metasploit, burp as either available or missing
+**Expected:** Should list testssl, wpscan, metasploit as either available or missing
 
 ### Step 6: Commit registry updates
 
@@ -1789,7 +1384,7 @@ python check_tools.py
 git add app/tools/registry.py tests/test_registry.py
 git commit -m "feat: register new security tool adapters in ToolRegistry
 
-- Add testssl, wpscan, metasploit, burp to registry
+- Add testssl, wpscan, metasploit to registry
 - Update imports and registration
 - Add registry tests for new tools
 - Tools now discoverable via check_tools.py"
@@ -1797,7 +1392,7 @@ git commit -m "feat: register new security tool adapters in ToolRegistry
 
 ---
 
-## Task 6: Update Documentation
+## Task 5: Update Documentation
 
 **Files:**
 - Modify: `CLAUDE.md:30-42`
@@ -1822,7 +1417,7 @@ git commit -m "feat: register new security tool adapters in ToolRegistry
 │   │       ├── testssl_adapter.py       # NEW
 │   │       ├── wpscan_adapter.py        # NEW
 │   │       ├── metasploit_adapter.py    # NEW
-│   │       └── burp_adapter.py          # NEW
+│   │       └──_adapter.py          # NEW
 ```
 
 ### Step 2: Add installation notes to CLAUDE.md
@@ -1852,11 +1447,6 @@ The following tools were added in this implementation:
 - Install: `curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && chmod 755 msfinstall && ./msfinstall`
 - Usage: Run exploitation modules via resource scripts
 
-**Burp Suite Professional** - Web application scanner
-- Executable: `burp`
-- Install: Download from https://portswigger.net/burp/pro (requires license)
-- Usage: Automated web application security scanning
-- Note: Requires Professional license for CLI scanner
 ```
 
 ### Step 3: Commit documentation updates
@@ -1866,14 +1456,13 @@ The following tools were added in this implementation:
 git add CLAUDE.md
 git commit -m "docs: update CLAUDE.md with new security tool adapters
 
-- Add testssl, wpscan, metasploit, burp to file structure
+- Add testssl, wpscan, metasploit to file structure
 - Document installation instructions for new tools
-- Note licensing requirements for Burp Suite Pro"
 ```
 
 ---
 
-## Task 7: Integration Testing (Optional)
+## Task 6: Integration Testing (Optional)
 
 **Note:** These tests require actual tools to be installed. Run only if tools are available.
 
@@ -1916,7 +1505,7 @@ def test_wpscan_integration():
     pytest.skip("Requires WordPress test instance")
 
 
-# Note: Metasploit and Burp integration tests omitted
+# Note: Metasploit integration tests omitted
 # (require extensive setup and licensing)
 ```
 
@@ -1944,7 +1533,7 @@ git commit -m "test: add integration tests for new adapters
 
 ---
 
-## Task 8: Final Verification
+## Task 7: Final Verification
 
 ### Step 1: Run complete test suite
 
@@ -1971,7 +1560,7 @@ python check_tools.py
 python -c "from app.tools.registry import ToolRegistry; r = ToolRegistry(); print([t['name'] for t in r.list_tools()])"
 ```
 
-**Expected:** Prints list including testssl, wpscan, metasploit, burp
+**Expected:** Prints list including testssl, wpscan, metasploit
 
 ### Step 4: Create final summary commit
 
@@ -1981,7 +1570,7 @@ git add -A
 git commit -m "feat: complete security tool adapters implementation
 
 Summary:
-- Added 4 new tool adapters (testssl, wpscan, metasploit, burp)
+- Added 3 new tool adapters (testssl, wpscan, metasploit)
 - All adapters follow BaseTool pattern
 - Comprehensive unit tests for all adapters
 - Registered in ToolRegistry
@@ -2001,7 +1590,6 @@ All four security tool adapters have been implemented following TDD principles:
 1. **TestSSL Adapter** - SSL/TLS security testing
 2. **WPScan Adapter** - WordPress vulnerability scanning
 3. **Metasploit Adapter** - Exploitation framework integration
-4. **Burp Adapter** - Web application security scanning
 
 Each adapter:
 - Implements the BaseTool interface

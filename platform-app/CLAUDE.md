@@ -41,8 +41,7 @@ platform-app/
 │   │       ├── amass_adapter.py
 │   │       ├── testssl_adapter.py       # NEW
 │   │       ├── wpscan_adapter.py        # NEW
-│   │       ├── metasploit_adapter.py    # NEW
-│   │       └── burp_adapter.py          # NEW
+│   │       └── metasploit_adapter.py    # NEW
 │   └── workflows/          # Workflow execution engine
 │       ├── engine.py       # WorkflowWorker (QThread-based)
 │       ├── schemas.py      # Pydantic models for workflows
@@ -174,12 +173,6 @@ The following tools were added in this implementation:
 - Executable: `msfconsole`
 - Install: `curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && chmod 755 msfinstall && ./msfinstall`
 - Usage: Run exploitation modules via resource scripts
-
-**Burp Suite Professional** - Web application scanner
-- Executable: `burp`
-- Install: Download from https://portswigger.net/burp/pro (requires license)
-- Usage: Automated web application security scanning
-- Note: Requires Professional license for CLI scanner
 
 ## Adding New Security Tools
 

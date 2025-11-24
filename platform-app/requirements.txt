@@ -1,5 +1,4 @@
 pyqt5==5.15.10
-pyqt5-sip==12.13.0
 pyqtwebengine==5.15.6
 sqlalchemy>=2.0.36
 bcrypt==4.1.2

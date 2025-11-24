@@ -62,25 +62,41 @@ class ReportWidget(QWidget):
         """Load reports for user"""
         self.current_user = user
         self.report_list.clear()
-        
+
         db = SessionLocal()
         scans = db.query(Scan).filter(
             Scan.user_id == user.id,
             Scan.status == "completed"
         ).order_by(Scan.started_at.desc()).all()
         db.close()
-        
+
         for scan in scans:
             item = QListWidgetItem(f"{scan.workflow_name} - {scan.target}")
             item.setData(Qt.UserRole, scan.id)
             self.report_list.addItem(item)
-        
+
         if scans:
             self.report_list.setCurrentRow(0)
             self.on_report_selected(self.report_list.item(0))
         else:
             self.report_content.setPlainText("No reports available")
-            
+
+    def load_scan_report(self, scan_id: int):
+        """Load a specific scan report by ID"""
+        db = SessionLocal()
+        scan = db.query(Scan).filter(Scan.id == scan_id).first()
+        db.close()
+
+        if scan and scan.results:
+            try:
+                results = json.loads(scan.results)
+                report = self.generate_report_text(scan, results)
+                self.report_content.setPlainText(report)
+            except:
+                self.report_content.setPlainText("Error loading report")
+        else:
+            self.report_content.setPlainText("No results available")
+
     def on_report_selected(self, item):
         """Handle report selection"""
         scan_id = item.data(Qt.UserRole)

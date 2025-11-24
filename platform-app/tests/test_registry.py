@@ -13,7 +13,6 @@ def test_registry_contains_new_tools():
     assert "testssl" in tool_names
     assert "wpscan" in tool_names
     assert "metasploit" in tool_names
-    assert "burp" in tool_names
 
 
 def test_registry_get_new_tools():
@@ -30,6 +29,3 @@ def test_registry_get_new_tools():
 
     metasploit = registry.get_tool("metasploit")
     assert metasploit is not None
-
-    burp = registry.get_tool("burp")
-    assert burp is not None

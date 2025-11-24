@@ -1,0 +1,9 @@
+'pyqt5' already seems to be installed. Not modifying existing installation in
+'/home/kiddulu/.local/share/pipx/venvs/pyqt5'. Pass '--force' to force
+installation.
+  installed package pyqtwebengine 5.15.6, installed using Python 3.13.9
+  These apps are now globally available
+    - pylupdate5 (symlink missing or pointing to unexpected location)
+    - pyrcc5 (symlink missing or pointing to unexpected location)
+    - pyuic5 (symlink missing or pointing to unexpected location)
+
