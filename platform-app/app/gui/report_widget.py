@@ -83,19 +83,33 @@ class ReportWidget(QWidget):
 
     def load_scan_report(self, scan_id: int):
         """Load a specific scan report by ID"""
-        db = SessionLocal()
-        scan = db.query(Scan).filter(Scan.id == scan_id).first()
-        db.close()
+        from app.core.logging_config import get_logger
+        logger = get_logger(__name__)
 
-        if scan and scan.results:
+        db = SessionLocal()
+        try:
+            scan = db.query(Scan).filter(Scan.id == scan_id).first()
+
+            if not scan:
+                self.report_content.setPlainText(f"Scan {scan_id} not found")
+                return
+
+            if not scan.results:
+                self.report_content.setPlainText("No results available for this scan")
+                return
+
             try:
                 results = json.loads(scan.results)
                 report = self.generate_report_text(scan, results)
                 self.report_content.setPlainText(report)
-            except:
-                self.report_content.setPlainText("Error loading report")
-        else:
-            self.report_content.setPlainText("No results available")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse scan results for scan_id={scan_id}: {e}")
+                self.report_content.setPlainText("Error: Report data is corrupted")
+            except Exception as e:
+                logger.error(f"Error generating report for scan_id={scan_id}: {e}")
+                self.report_content.setPlainText(f"Error loading report: {str(e)}")
+        finally:
+            db.close()
 
     def on_report_selected(self, item):
         """Handle report selection"""

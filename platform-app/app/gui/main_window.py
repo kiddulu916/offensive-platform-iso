@@ -123,6 +123,7 @@ class MainWindow(QMainWindow):
 
         # Navigate to report widget
         self.stacked_widget.setCurrentWidget(self.report_page)
+        self.report_page.set_return_callback(self.show_dashboard)
 
     def launch_workflow(self, workflow_id):
         """Launch a workflow"""
