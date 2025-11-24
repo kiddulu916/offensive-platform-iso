@@ -184,3 +184,50 @@ Encountered error(s): 1 errors occured.
 2025-11-23 19:51:44 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | Tool parameters: {'domain': 'example.com', 'passive': True}
 2025-11-23 19:51:44 | INFO     | tools.amass | [scan:N/A task:N/A tool:amass] | Command: amass enum -d example.com -json /dev/stdout -passive
 2025-11-23 19:51:44 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | Timeout: 900s
+2025-11-23 19:52:31 | INFO     | tools.amass | [scan:N/A task:N/A tool:amass] | Tool completed in 47.99s - Return code: 1
+2025-11-23 19:52:31 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | STDOUT length: 1940 characters
+2025-11-23 19:52:31 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | STDERR length: 2604 characters
+2025-11-23 19:52:31 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | STDERR preview:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+ 35 9951k   35 3487k    0     0  2317k      0  0:00:04  0:00:01  0:00:03 3501k
+100 9951k  100 9951k    
+2025-11-23 19:52:31 | DEBUG    | tools.amass | [scan:N/A task:N/A tool:amass] | Parsed data keys: ['subdomains', 'count']
+2025-11-23 19:52:31 | INFO     | workflows.engine | [scan:15 task:recon_amass tool:amass] | Tool execution completed - success: False, duration: 47.99s
+2025-11-23 19:52:31 | ERROR    | workflows.engine | [scan:15 task:recon_amass tool:amass] | Tool execution failed: Unknown error
+2025-11-23 19:52:32 | ERROR    | workflows.engine | [scan:15 task:N/A tool:N/A] | Task recon_amass failed
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:N/A tool:N/A] | Progress: 12% (0 completed, 1 failed)
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:N/A tool:N/A] | Dependency check: 1 tasks ready to execute
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:N/A tool:N/A] | Selected task for execution: recon_subfinder (Subfinder Subdomain Enumeration) - priority 10
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Starting task: Subfinder Subdomain Enumeration
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Task dependencies: []
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Raw parameters: {'domain': 'example.com', 'all': True, 'resolve': True}
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Substituted parameters: {'domain': 'example.com', 'all': True, 'resolve': True}
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Executing tool: subfinder
+2025-11-23 19:52:32 | INFO     | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Executing tool: subfinder
+2025-11-23 19:52:32 | DEBUG    | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Tool parameters: {'domain': 'example.com', 'all': True, 'resolve': True}
+2025-11-23 19:52:32 | INFO     | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Command: subfinder -d example.com -json -silent -ip -all
+2025-11-23 19:52:32 | DEBUG    | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Timeout: 300s
+2025-11-23 19:52:32 | INFO     | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Tool completed in 0.59s - Return code: 1
+2025-11-23 19:52:32 | DEBUG    | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | STDERR length: 86 characters
+2025-11-23 19:52:32 | DEBUG    | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | STDERR preview: [[1;31mFTL[0m] Program exiting: hostip flag must be used with RemoveWildcard option
+
+2025-11-23 19:52:32 | DEBUG    | tools.subfinder | [scan:N/A task:N/A tool:subfinder] | Parsed data keys: ['subdomains', 'count']
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Tool execution completed - success: False, duration: 0.59s
+2025-11-23 19:52:32 | ERROR    | workflows.engine | [scan:15 task:recon_subfinder tool:subfinder] | Tool execution failed: Unknown error
+2025-11-23 19:52:32 | ERROR    | workflows.engine | [scan:15 task:N/A tool:N/A] | Task recon_subfinder failed
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:N/A tool:N/A] | Progress: 25% (0 completed, 2 failed)
+2025-11-23 19:52:32 | DEBUG    | workflows.engine | [scan:15 task:N/A tool:N/A] | Dependency check: 0 tasks ready to execute
+2025-11-23 19:52:32 | ERROR    | workflows.engine | [scan:15 task:N/A tool:N/A] | Workflow blocked: 6 tasks cannot run due to failed dependencies
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task merge_subdomains (Merge and Deduplicate Subdomains) - dependencies failed
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task scan_ports (Port Scanning) - dependencies failed
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task discovery_http_probe (HTTP Probing) - dependencies failed
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task discovery_directories (Directory Discovery) - dependencies failed
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task vuln_nuclei_scan (Nuclei Vulnerability Scan) - dependencies failed
+2025-11-23 19:52:32 | WARNING  | workflows.engine | [scan:15 task:N/A tool:N/A] | Skipping task exploit_sqli_test (SQL Injection Testing) - dependencies failed
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:N/A tool:N/A] | Workflow execution completed in 48.73s
+2025-11-23 19:52:32 | INFO     | workflows.engine | [scan:15 task:N/A tool:N/A] | Workflow summary: 0 completed, 2 failed

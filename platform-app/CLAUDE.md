@@ -383,6 +383,29 @@ Key Python packages:
    - Check `data/logs/tools.log` for actual commands executed and their output
    - Look for parameter substitution failures or dependency issues in logs
 
+## Testing
+
+The platform has comprehensive test coverage across unit, integration, and GUI tests.
+
+**Quick Start:**
+```bash
+# Run all tests
+pytest
+
+# Run only fast unit tests
+pytest -m "not integration"
+
+# Generate coverage report
+pytest --cov=app --cov-report=html
+```
+
+**See `docs/TESTING.md` for complete testing guide including:**
+- Test structure and organization
+- Writing tool adapter tests
+- Integration test examples
+- Coverage goals and reporting
+- CI/CD integration
+
 ## Code Architecture Notes
 
 **Workflow execution is single-threaded**: The `WorkflowWorker` executes tasks sequentially, NOT in parallel. Even if multiple tasks are ready, only the highest priority task runs at a time. This is by design to avoid overwhelming the system with concurrent scans.
