@@ -1,5 +1,8 @@
+.venv
 venv
 .pytest_cache
 __pycache__
 env
 env.local
+kali-config
+live-build-config
