@@ -71,19 +71,14 @@ def test_nmap_execution(registry):
     """Test Nmap tool executes successfully"""
     nmap = registry.get_tool("nmap")
 
-    # Note: This test may fail due to known bug in nmap_adapter.py execute() method
-    # The adapter passes timeout to super().execute() which doesn't accept it
-    try:
-        result = nmap.execute({
-            "target": ["scanme.nmap.org"],
-            "scan_type": "quick"
-        })
+    result = nmap.execute({
+        "target": ["scanme.nmap.org"],
+        "scan_type": "quick"
+    })
 
-        assert "success" in result
-        if result["success"]:
-            assert "hosts" in result["data"]
-    except TypeError as e:
-        pytest.skip(f"Known bug in nmap adapter: {e}")
+    assert "success" in result
+    if result["success"]:
+        assert "hosts" in result["data"]
 
 def test_tool_parameter_validation(registry):
     """Test that tools properly validate parameters"""

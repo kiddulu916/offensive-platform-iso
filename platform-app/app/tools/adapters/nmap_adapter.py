@@ -158,11 +158,11 @@ class NmapAdapter(BaseTool):
         # Domain is stored in instance variable during execute()
         return getattr(self, '_current_domain', None)
 
-    def execute(self, params: Dict[str, Any], timeout: int = None) -> Dict[str, Any]:
+    def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Override execute to capture domain parameter"""
         # Store domain for later use in parse_output
         self._current_domain = params.get("domain")
-        return super().execute(params, timeout)
+        return super().execute(params)
 
     def _save_nmap_results(self, domain: str, raw_output: str, parsed_data: List[Dict]):
         """Save raw and parsed nmap results to files"""
